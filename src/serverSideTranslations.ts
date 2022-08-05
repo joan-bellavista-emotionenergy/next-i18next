@@ -110,10 +110,13 @@ export const serverSideTranslations = async (
   // populating the shared locales
   namespacesRequired
     .filter((ns) => ns.startsWith('shared-'))
-    .forEach((ns) => {
-      const resource = {
-        h1: 'suup',
-      }
+    .forEach(async (ns) => {
+      const resource = await (
+        await fetch(
+          'http://localhost:3000/shared-locales/en/shared-common.json'
+        )
+      ).json()
+
       i18n.services.resourceStore.data['en'][ns] = resource
     })
 

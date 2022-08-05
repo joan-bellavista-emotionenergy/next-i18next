@@ -78,7 +78,7 @@ export const getServerSideProps = async ({ locale }) => {
     'shared-common',
   ])
 
-  //console.log({t: JSON.stringify(t._nextI18Next.initialI18nStore,null,2) })
+  //console.log({t: JSON.stringify(t._nextI18Next.initialI18nStore, null, 2)})
   return {
     props: {
       ...t,
