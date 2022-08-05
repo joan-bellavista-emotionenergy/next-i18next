@@ -108,21 +108,23 @@ export const serverSideTranslations = async (
   }
 
   if ((config as any).sharedModule.enabled) {
-    // populating the shared locales
+    const { translateServerUrl } = (config as any).sharedModule
 
-    //console.error({ config: JSON.stringify(config, undefined, 2) });
     await Promise.all(
       namespacesRequired
         .filter((ns) => ns.startsWith('shared-'))
         .map(async (ns) => {
-          if (i18n.services.resourceStore.data['en'][ns] !== undefined) return
-          const url = (config as any).sharedModule.translateServerUrl
-          const resource = await (
-            await fetch(`${url}/shared-locales/en/${ns}.json`)
-          ).json()
-          //console.error({ url, resource });
+          for (const locale in initialI18nStore) {
+            if (i18n.services.resourceStore.data[locale][ns] !== undefined)
+              return
+            const resource = await (
+              await fetch(
+                `${translateServerUrl}/shared-locales/${locale}/${ns}.json`
+              )
+            ).json()
 
-          i18n.services.resourceStore.data['en'][ns] = resource
+            i18n.services.resourceStore.data[locale][ns] = resource
+          }
         })
     )
   }
