@@ -127,10 +127,12 @@
   "dependencies": {
     "@babel/runtime": "^7.18.9",
     "@types/hoist-non-react-statics": "^3.3.1",
+    "@types/lodash": "^4.14.182",
     "core-js": "^3",
     "hoist-non-react-statics": "^3.3.2",
     "i18next": "^21.8.14",
     "i18next-fs-backend": "^1.1.4",
+    "lodash": "^4.17.21",
     "react-i18next": "^11.18.3"
   },
   "peerDependencies": {
