@@ -107,19 +107,25 @@ export const serverSideTranslations = async (
     namespacesRequired = flatNamespaces(namespacesByLocale)
   }
 
-  // populating the shared locales
-  namespacesRequired
-    .filter((ns) => ns.startsWith('shared-'))
-    .forEach(async (ns) => {
-      const resource = await (
-        await fetch(
-          'http://localhost:3000/shared-locales/en/shared-common.json'
-        )
-      ).json()
+  if ((config as any).sharedModule.enabled) {
+    // populating the shared locales
 
-      i18n.services.resourceStore.data['en'][ns] = resource
-    })
+    //console.error({ config: JSON.stringify(config, undefined, 2) });
+    await Promise.all(
+      namespacesRequired
+        .filter((ns) => ns.startsWith('shared-'))
+        .map(async (ns) => {
+          if (i18n.services.resourceStore.data['en'][ns] !== undefined) return
+          const url = (config as any).sharedModule.translateServerUrl
+          const resource = await (
+            await fetch(`${url}/shared-locales/en/${ns}.json`)
+          ).json()
+          //console.error({ url, resource });
 
+          i18n.services.resourceStore.data['en'][ns] = resource
+        })
+    )
+  }
   namespacesRequired.forEach((ns) => {
     for (const locale in initialI18nStore) {
       initialI18nStore[locale][ns] =
