@@ -9,8 +9,7 @@ import { Footer } from '../components/Footer'
 
 const Homepage = () => {
   const router = useRouter()
-  const { t } = useTranslation('common')
-
+  const { t } = useTranslation(['common', 'shared-common'])
   return (
     <>
       <main>
@@ -73,13 +72,13 @@ const Homepage = () => {
 }
 
 export const getServerSideProps = async ({ locale }) => {
-  const t = await serverSideTranslations(locale, [
+  let t = await serverSideTranslations(locale, [
     'common',
     'footer',
     'shared-common',
   ])
 
-  //console.log({ t: JSON.stringify(t._nextI18Next.initialI18nStore, null, 2)});
+  //console.log({t: JSON.stringify(t._nextI18Next.initialI18nStore,null,2) })
   return {
     props: {
       ...t,

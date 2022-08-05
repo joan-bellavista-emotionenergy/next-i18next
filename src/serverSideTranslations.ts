@@ -8,7 +8,6 @@ import { globalI18n } from './appWithTranslation'
 
 import { UserConfig, SSRConfig } from './types'
 import { FallbackLng } from 'i18next'
-import _ from 'lodash'
 
 const DEFAULT_CONFIG_PATH = './next-i18next.config.js'
 
@@ -108,6 +107,16 @@ export const serverSideTranslations = async (
     namespacesRequired = flatNamespaces(namespacesByLocale)
   }
 
+  // populating the shared locales
+  namespacesRequired
+    .filter((ns) => ns.startsWith('shared-'))
+    .forEach((ns) => {
+      const resource = {
+        h1: 'suup',
+      }
+      i18n.services.resourceStore.data['en'][ns] = resource
+    })
+
   namespacesRequired.forEach((ns) => {
     for (const locale in initialI18nStore) {
       initialI18nStore[locale][ns] =
@@ -117,9 +126,7 @@ export const serverSideTranslations = async (
 
   return {
     _nextI18Next: {
-      initialI18nStore: _.merge(initialI18nStore, {
-        en: { 'shared-common': { h1: 'suup' } },
-      }),
+      initialI18nStore,
       initialLocale,
       ns: namespacesRequired,
       userConfig: config.serializeConfig ? userConfig : null,
