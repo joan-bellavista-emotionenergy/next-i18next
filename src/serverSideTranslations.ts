@@ -19,9 +19,10 @@ const flatLocales = (locales: false | FallbackLng) => {
     return locales
   }
   if (typeof locales === 'object' && locales !== null) {
-    return Object
-      .values(locales)
-      .reduce((all, items) => [...all, ...items],[])
+    return Object.values(locales).reduce(
+      (all, items) => [...all, ...items],
+      []
+    )
   }
   return []
 }
@@ -38,10 +39,12 @@ export const serverSideTranslations = async (
   initialLocale: string,
   namespacesRequired: string[] | undefined = undefined,
   configOverride: UserConfig | null = null,
-  extraLocales: string[] | false = false,
+  extraLocales: string[] | false = false
 ): Promise<SSRConfig> => {
   if (typeof initialLocale !== 'string') {
-    throw new Error('Initial locale argument was not passed into serverSideTranslations')
+    throw new Error(
+      'Initial locale argument was not passed into serverSideTranslations'
+    )
   }
 
   let userConfig = configOverride
@@ -59,12 +62,8 @@ export const serverSideTranslations = async (
     lng: initialLocale,
   })
 
-  const {
-    localeExtension,
-    localePath,
-    fallbackLng,
-    reloadOnPrerender,
-  } = config
+  const { localeExtension, localePath, fallbackLng, reloadOnPrerender } =
+    config
 
   if (reloadOnPrerender) {
     await globalI18n?.reloadResources()
@@ -89,24 +88,50 @@ export const serverSideTranslations = async (
 
   if (!Array.isArray(namespacesRequired)) {
     if (typeof localePath === 'function') {
-      throw new Error('Must provide namespacesRequired to serverSideTranslations when using a function as localePath')
+      throw new Error(
+        'Must provide namespacesRequired to serverSideTranslations when using a function as localePath'
+      )
     }
 
     const getLocaleNamespaces = (path: string) =>
-      fs.readdirSync(path)
-        .map(file => file.replace(`.${localeExtension}`, ''))
+      fs
+        .readdirSync(path)
+        .map((file) => file.replace(`.${localeExtension}`, ''))
 
-    const namespacesByLocale = Object.keys(initialI18nStore)
-      .map(locale => getLocaleNamespaces(path.resolve(process.cwd(), `${localePath}/${locale}`)))
+    const namespacesByLocale = Object.keys(initialI18nStore).map((locale) =>
+      getLocaleNamespaces(
+        path.resolve(process.cwd(), `${localePath}/${locale}`)
+      )
+    )
 
     namespacesRequired = flatNamespaces(namespacesByLocale)
   }
 
+  if ((config as any).sharedModule.enabled) {
+    const { translateServerUrl } = (config as any).sharedModule
+
+    await Promise.all(
+      namespacesRequired
+        .filter((ns) => ns.startsWith('shared-'))
+        .map(async (ns) => {
+          for (const locale in initialI18nStore) {
+            if (i18n.services.resourceStore.data[locale][ns] !== undefined)
+              return
+            const resource = await (
+              await fetch(
+                `${translateServerUrl}/shared-locales/${locale}/${ns}.json`
+              )
+            ).json()
+
+            i18n.services.resourceStore.data[locale][ns] = resource
+          }
+        })
+    )
+  }
   namespacesRequired.forEach((ns) => {
     for (const locale in initialI18nStore) {
-      initialI18nStore[locale][ns] = (
+      initialI18nStore[locale][ns] =
         (i18n.services.resourceStore.data[locale] || {})[ns] || {}
-      )
     }
   })
 
