@@ -65,7 +65,7 @@
     "preversion": "npm run test && npm run build && git push",
     "postversion": "git push && git push --tags && npm run release",
     "release": "gh-release",
-    "prepare": "npm run build"
+    "preinstall": "npm run build"
   },
   "husky": {
     "hooks": {
